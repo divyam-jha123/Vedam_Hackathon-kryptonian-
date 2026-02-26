@@ -13,18 +13,21 @@
             }
         }
     ],
-    "rewrites": [
+    "routes": [
         {
-            "source": "/api/(.*)",
-            "destination": "backend/index.js"
+            "src": "/api/(.*)",
+            "dest": "backend/index.js"
         },
         {
-            "source": "/user/(.*)",
-            "destination": "backend/index.js"
+            "src": "/user/(.*)",
+            "dest": "backend/index.js"
         },
         {
-            "source": "/(.*)",
-            "destination": "/index.html"
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
         }
     ]
 }
