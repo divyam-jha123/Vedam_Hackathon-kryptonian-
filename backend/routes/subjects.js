@@ -34,11 +34,13 @@ router.post('/', auth, async (req, res) => {
 // GET /api/subjects — List all subjects for the user
 router.get('/', auth, async (req, res) => {
     try {
+        console.log('[Subjects] Listing for user:', req.user.id);
         const subjects = await Subject.find({ userId: req.user.id }).sort({ createdAt: -1 });
+        console.log(`[Subjects] Found ${subjects.length} subjects`);
         return res.json(subjects);
     } catch (err) {
-        console.error('List subjects error:', err);
-        return res.status(500).json({ message: 'Internal server error.' });
+        console.error('[Subjects] List error:', err.message);
+        return res.status(500).json({ message: 'Internal server error.', details: err.message });
     }
 });
 

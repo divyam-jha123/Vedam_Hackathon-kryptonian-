@@ -12,6 +12,11 @@ const notesRoutes = require('./routes/notes');
 const chatRoutes = require('./routes/chat');
 const studyRoutes = require('./routes/study');
 
+console.log('[Backend] Starting with ENV check:');
+console.log(' - MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'MISSING');
+console.log(' - CLERK_SECRET_KEY:', process.env.CLERK_SECRET_KEY ? 'SET' : 'MISSING');
+console.log(' - PORT:', process.env.PORT || 5001);
+
 const app = express();
 const port = process.env.PORT || 5001;
 
@@ -40,14 +45,30 @@ const connectToDatabase = async () => {
   return cachedDb;
 };
 
+// Health check
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    db: cachedDb ? 'connected' : 'disconnected',
+    env: {
+      mongodb: !!process.env.MONGODB_URI,
+      clerk: !!process.env.CLERK_SECRET_KEY,
+      jwt: !!process.env.JWT_SECRET
+    }
+  });
+});
+
 // Middleware to ensure DB is connected
 app.use(async (req, res, next) => {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined in environment variables');
+    }
     await connectToDatabase();
     next();
   } catch (err) {
-    console.error('DB connection error:', err);
-    res.status(500).json({ error: 'Database connection failed' });
+    console.error('DB connection error:', err.message);
+    res.status(500).json({ error: 'Database connection failed', details: err.message });
   }
 });
 
