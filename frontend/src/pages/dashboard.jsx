@@ -9,7 +9,7 @@ import {
 import {
   getSubjects, createSubject,
   uploadNote, deleteNote,
-  sendMessage, getChatHistory, getAllChatHistories,
+  sendMessage, getChatHistory, getAllChatHistories, clearChatHistory,
 } from '../api/askMyNotes';
 
 // ─── Confidence Badge ───
@@ -133,14 +133,27 @@ const StitchInterface = () => {
       const subList = await getSubjects();
       setSubjects(subList);
       if (subList.length > 0) {
-        setSubjectId(subList[0]._id);
-        const history = await getChatHistory(subList[0]._id);
-        setMessages(history);
-        setUploadedFiles(subList[0].notes || []);
+        // Try to restore the last active subject from localStorage
+        const savedId = localStorage.getItem('activeSubjectId');
+        const activeSubject = savedId ? subList.find(s => s._id === savedId) : null;
+        const targetSubject = activeSubject || subList[subList.length - 1];
+        setSubjectId(targetSubject._id);
+        localStorage.setItem('activeSubjectId', targetSubject._id);
+        // Load chat history for the target subject
+        try {
+          const history = await getChatHistory(targetSubject._id);
+          setMessages(history || []);
+        } catch {
+          setMessages([]);
+        }
+        setUploadedFiles(targetSubject.notes || []);
       } else {
         const subject = await createSubject('My Notes');
         setSubjects([subject]);
         setSubjectId(subject._id);
+        localStorage.setItem('activeSubjectId', subject._id);
+        setMessages([]);
+        setUploadedFiles([]);
       }
       // Fetch all chat histories for sidebar
       const histories = await getAllChatHistories();
@@ -153,6 +166,7 @@ const StitchInterface = () => {
   async function loadConversation(historySubjectId) {
     try {
       setSubjectId(historySubjectId);
+      localStorage.setItem('activeSubjectId', historySubjectId);
       const history = await getChatHistory(historySubjectId);
       setMessages(history);
       // Also load the subject's files
@@ -250,6 +264,26 @@ const StitchInterface = () => {
     "Explain the technical terms mentioned in the file",
     "List the main action items or takeaways"
   ];
+
+  async function handleNewChat() {
+    try {
+      // 1. Refresh sidebar so current conversation appears in history
+      await refreshHistories();
+      // 2. Create a new subject for the fresh chat
+      const newSubject = await createSubject(`Chat ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`);
+      setSubjects((prev) => [...prev, newSubject]);
+      setSubjectId(newSubject._id);
+      localStorage.setItem('activeSubjectId', newSubject._id);
+      // 3. Clear the UI for a fresh chat
+      setMessages([]);
+      setUploadedFiles([]);
+      setInput('');
+      setError('');
+    } catch (err) {
+      console.error('New chat error:', err);
+      setError('Could not create new chat. Try again.');
+    }
+  }
 
   return (
     <div style={{
@@ -540,7 +574,7 @@ const StitchInterface = () => {
                 return (
                   <div key={i} style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
                     <div className="card-glass" style={{
-                      maxWidth: '85%', borderRadius: 20, padding: '16px 20px',
+                      maxWidth: '85%', padding: '16px 20px',
                       background: isUser ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.04)',
                       borderColor: isUser ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.08)',
                       borderRadius: isUser ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
@@ -669,7 +703,20 @@ const StitchInterface = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <button
+                    onClick={handleNewChat}
+                    style={{
+                      padding: '12px 20px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)',
+                      background: 'rgba(255,255,255,0.04)', color: '#94a3b8',
+                      fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
+                      display: 'flex', alignItems: 'center', gap: 6,
+                    }}
+                    onMouseOver={e => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.4)'; e.currentTarget.style.color = '#e2e8f0'; }}
+                    onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#94a3b8'; }}
+                  >
+                    <RefreshCw size={14} /> New Chat
+                  </button>
                   <button
                     onClick={handleSend}
                     disabled={!input.trim() || sending || uploadedFiles.length === 0}
