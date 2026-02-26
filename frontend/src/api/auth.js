@@ -1,9 +1,3 @@
-const API_BASE = '/api';
-
-function getToken() {
-    return localStorage.getItem('token');
-}
-
 async function parseJSON(res) {
     const text = await res.text();
     if (!text) {
@@ -17,9 +11,10 @@ async function parseJSON(res) {
 }
 
 export async function signup({ username, email, password }) {
-    const res = await fetch(`${API_BASE}/user/signup`, {
+    const res = await fetch('/user/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username, email, password }),
     });
 
@@ -33,9 +28,10 @@ export async function signup({ username, email, password }) {
 }
 
 export async function login({ email, password }) {
-    const res = await fetch(`${API_BASE}/user/login`, {
+    const res = await fetch('/user/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
     });
 
@@ -47,3 +43,4 @@ export async function login({ email, password }) {
 
     return data;
 }
+
