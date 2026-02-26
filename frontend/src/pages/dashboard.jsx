@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useClerk } from '@clerk/clerk-react';
+import { useClerk, useAuth } from '@clerk/clerk-react';
 import {
   Plus, ArrowRight, Monitor, Smartphone, Zap,
   UploadCloud, Trash2, Loader2, RefreshCw, CheckCircle2,
@@ -12,6 +12,7 @@ import {
   getSubjects, createSubject,
   uploadNote, deleteNote,
   sendMessage, getChatHistory, getAllChatHistories, clearChatHistory,
+  setTokenGetter,
 } from '../api/askMyNotes';
 
 // ─── Confidence Badge ───
@@ -100,6 +101,7 @@ function timeAgo(dateStr) {
 const StitchInterface = () => {
   const navigate = useNavigate();
   const { signOut } = useClerk();
+  const { getToken, isSignedIn } = useAuth();
   const [device, setDevice] = useState('app');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
@@ -127,6 +129,11 @@ const StitchInterface = () => {
   const voiceModeRef = useRef(false); // ref to track active state in async callbacks
 
   const MAX_CHARS = 1000;
+
+  // Wire up Clerk token getter for API calls
+  useEffect(() => {
+    setTokenGetter(() => getToken());
+  }, [getToken]);
 
   // Auto-create or load a default subject on mount
   useEffect(() => {
@@ -357,26 +364,39 @@ const StitchInterface = () => {
       const subList = await getSubjects();
       setSubjects(subList);
 
-      // Always create a fresh chat/subject on dashboard load as per user request
-      const timestamp = new Date().toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      const subject = await createSubject(`Chat ${timestamp}`);
+      // Try to create a fresh chat/subject
+      let subject;
+      try {
+        const timestamp = new Date().toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        subject = await createSubject(`Chat ${timestamp}`);
+        setSubjects((prev) => [...prev, subject]);
+      } catch (createErr) {
+        // If subject creation fails (e.g., limit reached), reuse the most recent subject
+        console.warn('Could not create new subject, reusing latest:', createErr.message);
+        if (subList.length > 0) {
+          subject = subList[0]; // Already sorted by createdAt desc
+        } else {
+          setError('Could not initialize chat. Please try again.');
+          return;
+        }
+      }
 
-      setSubjects((prev) => [...prev, subject]);
       setSubjectId(subject._id);
       localStorage.setItem('activeSubjectId', subject._id);
       setMessages([]);
-      setUploadedFiles([]);
+      setUploadedFiles(subject.notes || []);
 
       // Fetch all chat histories for sidebar
       const histories = await getAllChatHistories();
       setChatHistories(histories);
     } catch (err) {
       console.error('Init subject error:', err);
+      setError('Failed to initialize. Please refresh the page.');
     }
   }
 

@@ -15,8 +15,8 @@ router.post('/', auth, async (req, res) => {
         }
 
         const count = await Subject.countByUser(req.user.id);
-        if (count >= 20) {
-            return res.status(400).json({ message: 'You can create a maximum of 20 subjects.' });
+        if (count >= 100) {
+            return res.status(400).json({ message: 'You can create a maximum of 100 subjects.' });
         }
 
         const subject = await Subject.create({
