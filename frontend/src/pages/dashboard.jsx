@@ -4,26 +4,30 @@ import {
   Plus, ArrowRight, Monitor, Smartphone, Zap,
   UploadCloud, Trash2, Loader2, RefreshCw, CheckCircle2,
   ThumbsUp, ThumbsDown, Edit3, Eye, ExternalLink,
-  History, ChevronLeft, ChevronRight, FileText, Mic, BookOpen
+  History, ChevronLeft, ChevronRight, FileText, Mic, BookOpen, LogOut
 } from 'lucide-react';
 
-/* ─── Starfield helpers ─── */
+/* ─── Helper ─── */
 function randomBetween(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-const STAR_COUNT = 80;
+/* ─── 10 Slow-Moving Stars ─── */
+const SLOW_STAR_COUNT = 10;
 
-const StarField = () => {
+const SlowStars = () => {
   const stars = useMemo(() => {
-    return Array.from({ length: STAR_COUNT }, (_, i) => ({
+    return Array.from({ length: SLOW_STAR_COUNT }, (_, i) => ({
       id: i,
-      top: randomBetween(0, 100),
-      left: randomBetween(0, 100),
-      size: randomBetween(0.6, 2.4),
-      duration: randomBetween(2.5, 7),
-      delay: randomBetween(0, 6),
-      opacity: randomBetween(0.4, 1),
+      top: randomBetween(5, 90),
+      left: randomBetween(5, 95),
+      size: randomBetween(1.5, 3),
+      duration: randomBetween(20, 45),
+      delay: randomBetween(0, 10),
+      dx: randomBetween(-60, 60),
+      dy: randomBetween(-40, 40),
+      opacity: randomBetween(0.4, 0.9),
+      hue: ['#fff', '#c4b5fd', '#93c5fd', '#a78bfa', '#e0e7ff'][Math.floor(Math.random() * 5)],
     }));
   }, []);
 
@@ -39,13 +43,20 @@ const StarField = () => {
             width: `${s.size}px`,
             height: `${s.size}px`,
             borderRadius: '50%',
-            backgroundColor: '#fff',
+            backgroundColor: s.hue,
             opacity: s.opacity,
-            animation: `twinkle ${s.duration}s ${s.delay}s ease-in-out infinite alternate`,
-            boxShadow: `0 0 ${s.size * 2}px ${s.size}px rgba(255,255,255,0.3)`,
+            boxShadow: `0 0 ${s.size * 3}px ${s.size}px rgba(255,255,255,0.25)`,
+            animation: `slowDrift${s.id} ${s.duration}s ${s.delay}s linear infinite alternate`,
           }}
         />
       ))}
+      <style>{stars.map(s => `
+        @keyframes slowDrift${s.id} {
+          0%   { transform: translate(0, 0); opacity: ${s.opacity}; }
+          50%  { opacity: ${Math.min(1, s.opacity + 0.3)}; }
+          100% { transform: translate(${s.dx}vw, ${s.dy}vh); opacity: ${s.opacity * 0.6}; }
+        }
+      `).join('')}</style>
     </div>
   );
 };
@@ -127,6 +138,10 @@ const StitchInterface = () => {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes heroFadeIn {
+          from { opacity: 0; transform: translateY(30px) scale(0.97); filter: blur(6px); }
+          to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
         .drifting-star {
           position: fixed;
           border-radius: 50%;
@@ -199,24 +214,7 @@ const StitchInterface = () => {
         }
       `}</style>
 
-      <StarField />
-
-      {/* Drifting stars */}
-      <div className="drifting-star" style={{
-        top: '15%', left: '5%', width: 3, height: 3,
-        background: '#fff', boxShadow: '0 0 6px 2px rgba(255,255,255,0.5)',
-        animation: 'driftStar1 25s linear infinite',
-      }} />
-      <div className="drifting-star" style={{
-        top: '60%', right: '8%', width: 2.5, height: 2.5,
-        background: '#c4b5fd', boxShadow: '0 0 8px 3px rgba(196,181,253,0.4)',
-        animation: 'driftStar2 32s 4s linear infinite',
-      }} />
-      <div className="drifting-star" style={{
-        bottom: '20%', left: '40%', width: 2, height: 2,
-        background: '#93c5fd', boxShadow: '0 0 6px 2px rgba(147,197,253,0.4)',
-        animation: 'driftStar3 28s 8s linear infinite',
-      }} />
+      <SlowStars />
 
       {/* Nebula glows */}
       <div style={{
@@ -304,6 +302,18 @@ const StitchInterface = () => {
               onMouseOver={e => e.target.style.color = '#ffffff'}
               onMouseOut={e => e.target.style.color = '#94a3b8'}
             >Home</Link>
+            <Link to="/login" style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              color: '#94a3b8', textDecoration: 'none', fontSize: 13, fontWeight: 600,
+              padding: '7px 14px', borderRadius: 10,
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+              transition: 'all 0.2s',
+            }}
+              onMouseOver={e => { e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; e.currentTarget.style.color = '#f87171'; }}
+              onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#94a3b8'; }}
+            >
+              <LogOut style={{ width: 14, height: 14 }} /> Sign Out
+            </Link>
             <div style={{
               width: 34, height: 34, borderRadius: '50%',
               background: 'linear-gradient(135deg, #7C3AED, #3b82f6, #10b981)',
@@ -462,28 +472,23 @@ const StitchInterface = () => {
           {appState === 'idle' && (
             <>
               {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 36 }}>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f1f5f9', margin: 0 }}>Start a new</h2>
-                <div style={{
-                  display: 'flex', background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 4,
+              <div style={{ textAlign: 'center', marginBottom: 36 }}>
+                <h2 style={{
+                  fontSize: '2.2rem', fontWeight: 900, color: '#f1f5f9', margin: 0,
+                  letterSpacing: '-1px', lineHeight: 1.2,
+                  animation: 'heroFadeIn 0.8s ease-out both',
                 }}>
-                  {[
-                    { key: 'app', icon: <Smartphone style={{ width: 15, height: 15 }} />, label: 'App' },
-                    { key: 'web', icon: <Monitor style={{ width: 15, height: 15 }} />, label: 'Web' },
-                  ].map(opt => (
-                    <button key={opt.key} onClick={() => setDevice(opt.key)} style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '8px 16px', borderRadius: 10, border: 'none',
-                      background: device === opt.key ? 'rgba(124,58,237,0.2)' : 'transparent',
-                      color: device === opt.key ? '#e2e8f0' : '#4b5563',
-                      fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
-                    }}>
-                      {opt.icon} {opt.label}
-                    </button>
-                  ))}
-                </div>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f1f5f9', margin: 0 }}>session</h2>
+                  Create Your{' '}
+                  <span style={{
+                    background: 'linear-gradient(90deg, #c084fc, #818cf8, #67e8f9)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}>Vision</span>
+                </h2>
+                <p style={{ color: '#64748b', fontSize: 14, marginTop: 10, animation: 'heroFadeIn 0.8s 0.25s ease-out both' }}>
+                  Upload your notes, ask questions, and let AI transform your learning.
+                </p>
               </div>
 
               {/* File drop area */}
@@ -513,11 +518,10 @@ const StitchInterface = () => {
                 <p style={{ fontSize: 11, color: '#334155', marginTop: 6 }}>PDF, PNG, JPG or Figma links</p>
               </div>
 
-              {/* Main input area */}
               <div className="input-glow" style={{ width: '100%' }}>
                 <div style={{
                   background: 'rgba(8,8,15,0.9)', border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 22, padding: 24, minHeight: 220,
+                  borderRadius: 16, padding: '14px 18px', minHeight: 80,
                   display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
                   boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
                 }}>
@@ -528,7 +532,7 @@ const StitchInterface = () => {
                     placeholder="Ask anything about your notes..."
                     style={{
                       background: 'transparent', border: 'none', outline: 'none',
-                      fontSize: 18, color: '#f1f5f9', resize: 'none', width: '100%', height: 120,
+                      fontSize: 14, color: '#f1f5f9', resize: 'none', width: '100%', height: 40,
                       fontFamily: "'Inter', sans-serif", lineHeight: 1.6,
                     }}
                   />
@@ -554,30 +558,19 @@ const StitchInterface = () => {
                           </button>
                         )}
                       </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <button style={{
-                        padding: 8, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)',
+                        padding: 10, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)',
                         background: 'transparent', color: '#4b5563', cursor: 'pointer',
                         display: 'flex', transition: 'all 0.2s',
                       }}
                         onMouseOver={e => { e.currentTarget.style.color = '#a78bfa'; e.currentTarget.style.borderColor = 'rgba(124,58,237,0.4)'; }}
                         onMouseOut={e => { e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                       >
-                        <Plus style={{ width: 18, height: 18 }} />
+                        <Mic style={{ width: 16, height: 16 }} />
                       </button>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                        padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-                      }}>
-                        <div style={{
-                          width: 8, height: 8, borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #7C3AED, #10b981)',
-                        }} />
-                        <span style={{ color: '#94a3b8' }}>3.0 Flash</span>
-                      </div>
                       <button
                         onClick={handleSend}
                         disabled={!prompt.trim()}
