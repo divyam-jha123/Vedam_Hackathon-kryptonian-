@@ -104,7 +104,7 @@ const SignUp = () => {
           <div style={{ background: '#7C3AED', padding: 8, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Zap style={{ color: '#fff', width: 22, height: 22 }} />
           </div>
-          <span style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>Smash AI</span>
+          <span style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>AskMyNotes</span>
         </div>
 
         {/* Hero text */}
@@ -173,13 +173,13 @@ const SignUp = () => {
             <div style={{ background: '#7C3AED', padding: 8, borderRadius: 10 }}>
               <Zap style={{ color: '#fff', width: 20, height: 20 }} />
             </div>
-            <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>Smash AI</span>
+            <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>AskMyNotes</span>
           </div>
 
           {/* Header */}
           <div style={{ marginBottom: 28 }}>
             <h2 style={{ fontSize: '1.7rem', fontWeight: 900, color: '#f1f5f9', margin: 0, letterSpacing: '-0.5px' }}>Create Account</h2>
-            <p style={{ fontSize: 13, color: '#64748b', marginTop: 8 }}>Join Smash AI and start learning smarter.</p>
+            <p style={{ fontSize: 13, color: '#64748b', marginTop: 8 }}>Join AskMyNotes and start learning smarter.</p>
           </div>
 
           {/* Error / Success */}
@@ -262,7 +262,7 @@ const SignUp = () => {
               clerkSignUp.authenticateWithRedirect({
                 strategy: 'oauth_google',
                 redirectUrl: '/sso-callback',
-                redirectUrlComplete: '/login',
+                redirectUrlComplete: '/dashboard',
               });
             }}
             disabled={!isClerkLoaded}

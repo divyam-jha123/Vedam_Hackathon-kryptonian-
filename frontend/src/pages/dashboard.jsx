@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useClerk } from '@clerk/clerk-react';
 import {
   Plus, ArrowRight, Monitor, Smartphone, Zap,
   UploadCloud, Trash2, Loader2, RefreshCw, CheckCircle2,
@@ -97,6 +98,8 @@ function timeAgo(dateStr) {
 }
 
 const StitchInterface = () => {
+  const navigate = useNavigate();
+  const { signOut } = useClerk();
   const [device, setDevice] = useState('app');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
@@ -291,6 +294,20 @@ const StitchInterface = () => {
   }
 
   // ─── Manual TTS for individual messages ───
+  async function handleSignOut() {
+    try {
+      // 1. Sign out from Clerk
+      await signOut();
+      // 2. Clear local auth state
+      localStorage.removeItem('user');
+      localStorage.removeItem('activeSubjectId');
+      // 3. Navigate home
+      navigate('/');
+    } catch (err) {
+      console.error('Sign out error:', err);
+    }
+  }
+
   function handleSpeak(text, msgIndex) {
     if (!window.speechSynthesis) {
       setError('Text-to-speech is not supported in this browser.');
@@ -339,29 +356,22 @@ const StitchInterface = () => {
     try {
       const subList = await getSubjects();
       setSubjects(subList);
-      if (subList.length > 0) {
-        // Try to restore the last active subject from localStorage
-        const savedId = localStorage.getItem('activeSubjectId');
-        const activeSubject = savedId ? subList.find(s => s._id === savedId) : null;
-        const targetSubject = activeSubject || subList[subList.length - 1];
-        setSubjectId(targetSubject._id);
-        localStorage.setItem('activeSubjectId', targetSubject._id);
-        // Load chat history for the target subject
-        try {
-          const history = await getChatHistory(targetSubject._id);
-          setMessages(history || []);
-        } catch {
-          setMessages([]);
-        }
-        setUploadedFiles(targetSubject.notes || []);
-      } else {
-        const subject = await createSubject('My Notes');
-        setSubjects([subject]);
-        setSubjectId(subject._id);
-        localStorage.setItem('activeSubjectId', subject._id);
-        setMessages([]);
-        setUploadedFiles([]);
-      }
+
+      // Always create a fresh chat/subject on dashboard load as per user request
+      const timestamp = new Date().toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      const subject = await createSubject(`Chat ${timestamp}`);
+
+      setSubjects((prev) => [...prev, subject]);
+      setSubjectId(subject._id);
+      localStorage.setItem('activeSubjectId', subject._id);
+      setMessages([]);
+      setUploadedFiles([]);
+
       // Fetch all chat histories for sidebar
       const histories = await getAllChatHistories();
       setChatHistories(histories);
@@ -709,7 +719,7 @@ const StitchInterface = () => {
               <div style={{ background: '#7C3AED', padding: 8, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Zap style={{ color: '#fff', width: 22, height: 22 }} />
               </div>
-              <span style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>Smash AI</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>AskMyNotes</span>
               <span style={{
                 background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)',
                 fontSize: 9, padding: '3px 8px', borderRadius: 999, color: '#a78bfa',
@@ -718,11 +728,15 @@ const StitchInterface = () => {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <Link to="/" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Home</Link>
-              <button style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                color: '#94a3b8', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                padding: '7px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600,
-              }}>
+              <button
+                onClick={handleSignOut}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  color: '#94a3b8', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                  padding: '7px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
                 <LogOut size={14} /> Sign Out
               </button>
               <div style={{
@@ -1153,7 +1167,7 @@ const StitchInterface = () => {
           {/* Branding at bottom */}
           <div style={{ position: 'absolute', bottom: 40, display: 'flex', alignItems: 'center', gap: 8, opacity: 0.4 }}>
             <Zap size={16} color="#a78bfa" />
-            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Smash AI Voice</span>
+            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>AskMyNotes Voice</span>
           </div>
         </div>
       )}

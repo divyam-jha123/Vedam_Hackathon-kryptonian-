@@ -176,7 +176,7 @@ const LandingPage = () => {
             <div style={{ background: '#7C3AED', padding: 8, borderRadius: 10, display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Zap style={{ color: '#fff', width: 22, height: 22 }} />
             </div>
-            <span style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>Smash AI</span>
+            <span style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>AskMyNotes</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 32, fontSize: 14, fontWeight: 500 }}>
@@ -246,7 +246,7 @@ const LandingPage = () => {
             </h1>
 
             <p style={{ fontSize: 17, color: '#94a3b8', lineHeight: 1.7, maxWidth: 460, margin: 0 }}>
-              Smash AI is your subject-scoped study copilot that turns static documents into
+              AskMyNotes is your subject-scoped study copilot that turns static documents into
               dynamic learning experiences grounded in your curriculum.
             </p>
 
@@ -540,7 +540,7 @@ const LandingPage = () => {
               Ready to ace your next exam?
             </h2>
             <p style={{ color: '#64748b', fontSize: 16, marginBottom: 40, maxWidth: 480, margin: '0 auto 40px', lineHeight: 1.6, position: 'relative' }}>
-              Join thousands of students already using Smash AI to study smarter, faster, and more effectively.
+              Join thousands of students already using AskMyNotes to study smarter, faster, and more effectively.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 14, flexWrap: 'wrap', position: 'relative' }}>
               <Link to="/signup" className="btn-primary" style={{
@@ -576,7 +576,7 @@ const LandingPage = () => {
                 <div style={{ background: '#7C3AED', padding: 6, borderRadius: 8, display:'flex', alignItems:'center', justifyContent:'center' }}>
                   <Zap style={{ color: '#fff', width: 16, height: 16 }} />
                 </div>
-                <span style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9' }}>Smash AI</span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9' }}>AskMyNotes</span>
               </div>
               <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
                 The ultimate AI companion for students who take their learning seriously.
@@ -612,7 +612,7 @@ const LandingPage = () => {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             fontSize: 12, color: '#334155',
           }}>
-            <p style={{ margin: 0 }}>© 2026 Smash AI Inc. All rights reserved.</p>
+            <p style={{ margin: 0 }}>© 2026 AskMyNotes Inc. All rights reserved.</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <Globe style={{ width: 14, height: 14 }} />
               <Zap style={{ width: 14, height: 14 }} />

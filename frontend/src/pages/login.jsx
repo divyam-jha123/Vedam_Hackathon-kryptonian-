@@ -105,7 +105,7 @@ const Login = () => {
           <div style={{ background: '#7C3AED', padding: 8, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Zap style={{ color: '#fff', width: 20, height: 20 }} />
           </div>
-          <span style={{ fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>Smash AI</span>
+          <span style={{ fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>AskMyNotes</span>
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <span style={{ fontSize: 13, color: '#64748b' }}>Don't have an account?</span>
@@ -142,7 +142,7 @@ const Login = () => {
               signIn.authenticateWithRedirect({
                 strategy: 'oauth_google',
                 redirectUrl: '/sso-callback',
-                redirectUrlComplete: '/',
+                redirectUrlComplete: '/dashboard',
               });
             }}
             disabled={!isClerkLoaded}
@@ -247,7 +247,7 @@ const Login = () => {
 
           {/* Bottom link */}
           <p style={{ textAlign: 'center', fontSize: 13, color: '#64748b', marginTop: 22 }}>
-            New to Smash AI?{" "}
+            New to AskMyNotes?{" "}
             <Link to="/signup" style={{ color: '#a78bfa', fontWeight: 700, textDecoration: 'none' }}>Create an account</Link>
           </p>
 
@@ -271,7 +271,7 @@ const Login = () => {
 
       {/* Footer */}
       <p style={{ textAlign: 'center', fontSize: 11, color: '#1e293b', padding: '16px 0', position: 'relative', zIndex: 1 }}>
-        © 2026 Smash AI. All rights reserved.
+        © 2026 AskMyNotes. All rights reserved.
       </p>
     </div>
   );

@@ -17,13 +17,32 @@ const port = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:5173',
   credentials: true,
 }));
 app.use(cookieParser());
 app.use(clerkMiddleware());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// DB Connection helper
+let cachedDb = null;
+const connectToDatabase = async () => {
+  if (cachedDb) return cachedDb;
+  cachedDb = await connectDb(process.env.MONGODB_URI);
+  return cachedDb;
+};
+
+// Middleware to ensure DB is connected
+app.use(async (req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (err) {
+    console.error('DB connection error:', err);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
 
 // Mount routes
 app.use('/user', userRoutes);
@@ -32,11 +51,16 @@ app.use('/api/notes', notesRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/study', studyRoutes);
 
-const startServer = async () => {
-  await connectDb(process.env.MONGODB_URI);
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
-}
+// Export for Vercel
+module.exports = app;
 
-startServer();
+// Listen only if running directly
+if (require.main === module) {
+  const startServer = async () => {
+    await connectToDatabase();
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  };
+  startServer();
+}
