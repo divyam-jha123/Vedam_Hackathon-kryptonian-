@@ -79,6 +79,15 @@ app.use('/api/notes', notesRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/study', studyRoutes);
 
+// Global error handler — prevent FUNCTION_INVOCATION_FAILED
+app.use((err, req, res, next) => {
+  console.error('[Global Error]', err.stack || err.message || err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+  });
+});
+
 // Export for Vercel
 module.exports = app;
 
